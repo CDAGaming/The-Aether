@@ -1,25 +1,21 @@
-//buildscript {
-//    dependencies {
-//        classpath "de.guntram.mcmod:crowdin-translate:${project.crowdin_translate_version}"
-//    }
-//    repositories {
-//        maven {
-//            name = 'CrowdinTranslate source'
-//            url = "https://minecraft.guntram.de/maven/"
-//        }
-//    }
-//}
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url = "https://files.minecraftforge.net/maven" }
+        maven { url = "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "net.minecraftforge.gradle:ForgeGradle:5.+"
+    }
+}
 
 plugins {
-    id 'fabric-loom' version '0.8.17'
     id 'maven-publish'
     id "com.modrinth.minotaur" version "1.2.1"
 }
 
-//apply plugin: 'de.guntram.mcmod.crowdin-translate'
-//crowdintranslate.crowdinProjectName = 'aether'
-//crowdintranslate.minecraftProjectName = 'the_aether'
-//crowdintranslate.verbose = true
+apply plugin: "net.minecraftforge.gradle"
 
 JavaVersion targetVersion = JavaVersion.VERSION_16
 
@@ -32,101 +28,78 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-repositories {
-    maven {
-        url = "https://minecraft.guntram.de/maven/"
-    }
-    maven { url "https://maven.jamieswhiteshirt.com/libs-release/" }
-    maven {
-        name = "Modmenu"
-        url = "https://maven.fabricmc.net/io/github/prospector/modmenu/"
-    }
-    maven {
-        name = "Fabric"
-        url = "https://maven.fabricmc.net/"
-    }
-    maven { url 'https://repo.repsy.io/mvn/gandiber/geckolib' }
-    maven {
-        name = "CottonMC"
-        url = "https://server.bbkr.space/artifactory/libs-release"
-    }
-    maven {
-        url = "https://www.cursemaven.com"
-        content {
-            includeGroup "curse.maven"
+minecraft {
+    mappings channel: 'official', version: "${mc_version}"
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            //Only uncomment this if you actually need the debug logging! If you enable this the log will be full of incredibly useless information spam
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            //property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.disableRefMap', 'true'
+            arg "--mixin=aether.mixins.json"
+
+            mods {
+                the_aether {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            //Only uncomment this if you actually need the debug logging! If you enable this the log will be full of incredibly useless information spam
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            //property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.disableRefMap', 'true'
+            arg "--mixin=aether.mixins.json"
+
+            mods {
+                the_aether {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            //property 'forge.logging.console.level', 'debug'
+
+            //args '--mod', 'the_aether', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing', file('src/generated/resources/')
+
+            environment 'target', 'fmluserdevdata'
+
+            mods {
+                the_aether {
+                    source sourceSets.main
+                }
+            }
         }
     }
-    maven { url "https://hephaestus.dev/release" }
-    maven {
-        name = "TerraformersMC"
-        url = "https://maven.terraformersmc.com/"
-    }
-    maven {
-        name = "Ladysnake Libs"
-        url = "https://ladysnake.jfrog.io/artifactory/mods"
-    }
-    maven { url "https://jitpack.io" }
-    maven {
-        name = "NerdHubMC"
-        url = "https://maven.abusedmaster.xyz/"
-    }
-    maven {
-        url = "https://maven.shedaniel.me/"
-    }
-    maven {
-        url = "http://maven.kyrptonaught.dev/"
-        allowInsecureProtocol = true
-    }
-    mavenCentral()
-}
-
-minecraft {
-    accessWidener "src/main/resources/the_aether.accesswidener"
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings minecraft.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    // Libraries
-//    modImplementation(include("com.jamieswhiteshirt:reach-entity-attributes:2.1.1"))
-//    modImplementation(include("io.github.cottonmc:LibGui:4.0.0+"))
-
-//    modImplementation "de.guntram.mcmod:crowdin-translate:${project.crowdin_translate_version}"
-//    include "de.guntram.mcmod:crowdin-translate:${project.crowdin_translate_version}"
-
-    // Implement the required portions of FAPI
-    // Remember to maintain these, and add the modular bits as needed. 
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-    // Testing only, do not JiJ
-//    modImplementation "com.terraformersmc:modmenu:2.0.0-beta.7"
-//    modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:6.0.250-alpha"
-
-    // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-    // You may need to force-disable transitiveness on them.
-
-//    modRuntime("com.github.SuperCoder7979:databreaker:${databreaker_version}") {
-//        exclude module: "fabric-loader"
-//    }
-
-    // Custom Portal Api
-//    modImplementation "net.kyrptonaught:customportalapi:${project.customportalapi_version}"
-//    include "net.kyrptonaught:customportalapi:${project.customportalapi_version}"
-
-//    modImplementation "dev.hephaestus:seedy-behavior:${project.seedy_version}"
-//    include "dev.hephaestus:seedy-behavior:${project.seedy_version}"
-
-    // Implement Trinkets for parachutes, rings etc.
-//    modImplementation "dev.emi:trinkets:${trinkets_version}"
+    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.loader_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
 }
 
 processResources {
+    // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
 
-    filesMatching("fabric.mod.json") {
+    // replace stuff in mods.toml, nothing else
+    filesMatching("META-INF/mods.toml") {
+        // replace version and mcversion
         expand 'version': project.version
     }
 }
@@ -175,7 +148,8 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'AetherReborn',
                 'Implementation-Version': project.version,
-                'Main-Class': 'com.aether.executable.InstallerGUI'
+                'Main-Class': 'com.aether.executable.InstallerGUI',
+                'MixinConfigs': 'the_aether.mixins.json'
     }
     from "LICENSE.md"
 }
@@ -203,4 +177,8 @@ publishing {
 
 //build {
 //    dependsOn downloadTranslations
+//}
+
+//compileJava {
+//    source = processSource.outputs
 //}
